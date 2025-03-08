@@ -1,5 +1,6 @@
 import http from 'node:http';
 import taskController from './controller/taskController.js';
+import { URL } from 'url';
 
 const server = http.createServer((req, res) => {
   const { method, url } = req;
@@ -27,19 +28,37 @@ const server = http.createServer((req, res) => {
     const urlObj = new URL(url, `http://${req.headers.host}`);
     const nameFilter = urlObj.searchParams.get('name');
 
-    taskController.listTasks(nameFilter)
-      .then(tasks => {
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify(tasks));
-      })
-      .catch(err => {
-        res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: err.message }));
-      });
+    if (urlObj.pathname === '/tasks') {
+      taskController.listTasks(nameFilter)
+        .then(tasks => {
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify(tasks));
+        })
+        .catch(err => {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: err.message }));
+        });
+    } else {
+      const id = urlObj.pathname.split('/')[2];
+      taskController.getTaskById(id)
+        .then(task => {
+          if (!task) {
+            res.writeHead(404, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Task not found' }));
+          } else {
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(task));
+          }
+        })
+        .catch(err => {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: err.message }));
+        });
+    }
   } else {
     res.writeHead(404, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ error: 'Not Found' }));
   }
 });
 
-server.listen(3333)
+server.listen(3333);
