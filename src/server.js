@@ -66,6 +66,17 @@ const server = http.createServer((req, res) => {
         res.writeHead(404, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: err.message }));
       });
+  } else if (method === 'DELETE' && url.startsWith('/tasks/')) {
+    const id = url.split('/')[2];
+    taskController.deleteTask(id)
+      .then(task => {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(task));
+      })
+      .catch(err => {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: err.message }));
+      });
   } else {
     res.writeHead(404, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ error: 'Not Found' }));
