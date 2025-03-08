@@ -55,6 +55,17 @@ const server = http.createServer((req, res) => {
           res.end(JSON.stringify({ error: err.message }));
         });
     }
+  } else if (method === 'PATCH' && url.startsWith('/tasks/')) {
+    const id = url.split('/')[2];
+    taskController.toggleTaskStatus(id)
+      .then(task => {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(task));
+      })
+      .catch(err => {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: err.message }));
+      });
   } else {
     res.writeHead(404, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ error: 'Not Found' }));
